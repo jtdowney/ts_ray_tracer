@@ -1,0 +1,20 @@
+{
+  "name": "ray_tracer",
+  "version": "1.0.0",
+  "description": "ray tracer in typescript",
+  "author": "John Downey",
+  "license": "MIT",
+  "scripts": {
+    "chapter1": "ts-node examples/chapter1.ts",
+    "test": "tsc && cucumber-js --publish-quiet features/"
+  },
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.15.0",
+    "@cucumber/cucumber": "^7.3.1",
+    "@types/chai": "^4.2.22",
+    "@types/node": "^16.9.6",
+    "chai": "^4.3.4",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.3"
+  }
+}
