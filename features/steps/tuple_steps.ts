@@ -1,47 +1,13 @@
-import { Given, Then, When } from "@cucumber/cucumber";
-import { assert } from "chai";
+import colors from "../../src/colors";
 import tuples from "../../src/tuples";
 import { EPSILON } from "../../src/constants";
-
-const numberExpressionRegex =
-  "(-?√?[0-9]+(?:\\.[0-9]+)?(?:\\/-?√?[0-9]+(?:\\.[0-9]+)?)?)";
-
-function parseNumberExpression(value: string): number {
-  return value
-    .split("/")
-    .map((part) => {
-      let negated = false;
-      let square_rooted = false;
-
-      if (part.startsWith("-")) {
-        negated = true;
-        part = part.substr(1);
-      }
-
-      if (part.startsWith("√")) {
-        square_rooted = true;
-        part = part.substr(1);
-      }
-
-      let value = Number(part);
-      if (square_rooted) {
-        value = Math.sqrt(value);
-      }
-
-      if (negated) {
-        value = -value;
-      }
-
-      return value;
-    })
-    .reduceRight((acc, value) => {
-      return value / acc;
-    }, 1);
-}
+import { Given, Then, When } from "@cucumber/cucumber";
+import { assert } from "chai";
+import { NUMBER_EXPRESSION_REGEX, parseNumberExpression } from "./common";
 
 Given(
   new RegExp(
-    `^([a-z0-9]+) ← tuple\\(${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}\\)$`
+    `^([a-z0-9]+) ← tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
   ),
   function (
     name: string,
@@ -64,7 +30,7 @@ Given(
 
 Given(
   new RegExp(
-    `^([a-z0-9]+) ← (point|vector)\\(${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}\\)$`
+    `^([a-z0-9]+) ← (point|vector)\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
   ),
   function (
     name: string,
@@ -85,6 +51,27 @@ Given(
   }
 );
 
+Given(
+  new RegExp(
+    `^([a-z0-9]+) ← color\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
+  ),
+  function (
+    name: string,
+    redExpression: string,
+    greenExpression: string,
+    blueExpression: string
+  ) {
+    if (!this.environment) {
+      this.environment = {};
+    }
+
+    const red = parseNumberExpression(redExpression);
+    const green = parseNumberExpression(greenExpression);
+    const blue = parseNumberExpression(blueExpression);
+    this.environment[name] = { red, green, blue };
+  }
+);
+
 When(
   "{word} ← normalize\\({word})",
   function (normalName: string, name: string) {
@@ -94,7 +81,7 @@ When(
 );
 
 Then(
-  new RegExp(`([a-z0-9]+)\.([a-z]+) = ${numberExpressionRegex}`),
+  new RegExp(`([a-z0-9]+)\.([a-z]+) = ${NUMBER_EXPRESSION_REGEX}`),
   function (name: string, element: string, expected: number) {
     const actual = this.environment[name][element];
     assert.equal(actual, expected);
@@ -123,7 +110,7 @@ Then("{word} is not a vector", function (name: string) {
 
 Then(
   new RegExp(
-    `^([a-z0-9]+) = tuple\\(${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}\\)$`
+    `^([a-z0-9]+) = tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
   ),
   function (
     name: string,
@@ -145,7 +132,7 @@ Then(
 
 Then(
   new RegExp(
-    `^-([a-z0-9]+) = tuple\\(${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}\\)$`
+    `^-([a-z0-9]+) = tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
   ),
   function (
     name: string,
@@ -167,7 +154,7 @@ Then(
 
 Then(
   new RegExp(
-    `^([a-z0-9]+) = vector\\(${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}\\)$`
+    `^([a-z0-9]+) = vector\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
   ),
   function (
     name: string,
@@ -192,7 +179,7 @@ Then(
 
 Then(
   new RegExp(
-    `^([a-z0-9]+) \\+ ([a-z0-9]+) = tuple\\(${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}\\)$`
+    `^([a-z0-9]+) \\+ ([a-z0-9]+) = tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
   ),
   function (
     name1: string,
@@ -217,7 +204,7 @@ Then(
 
 Then(
   new RegExp(
-    `^([a-z0-9]+) ([*/]) ${numberExpressionRegex} = tuple\\(${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}\\)$`
+    `^([a-z0-9]+) ([*/]) ${NUMBER_EXPRESSION_REGEX} = tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
   ),
   function (
     name: string,
@@ -252,7 +239,7 @@ Then(
 
 Then(
   new RegExp(
-    `^([a-z0-9]+) - ([a-z0-9]+) = (point|vector)\\(${numberExpressionRegex}, ${numberExpressionRegex}, ${numberExpressionRegex}\\)$`
+    `^([a-z0-9]+) - ([a-z0-9]+) = (point|vector)\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
   ),
   function (
     name1: string,
@@ -276,7 +263,7 @@ Then(
 );
 
 Then(
-  new RegExp(`^magnitude\\(([a-z0-9]+)\\) = ${numberExpressionRegex}$`),
+  new RegExp(`^magnitude\\(([a-z0-9]+)\\) = ${NUMBER_EXPRESSION_REGEX}$`),
   function (name: string, expectedExpression: string) {
     const value = this.environment[name];
     const actual = tuples.magnitude(value);
@@ -327,5 +314,70 @@ Then(
     const value2 = this.environment[name2];
     const actual = tuples.dot(value1, value2);
     assert.equal(actual, expected);
+  }
+);
+
+Then(
+  new RegExp(
+    `^([a-z0-9]+) ([-+*]) ([a-z]+[0-9]+) = color\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
+  ),
+  function (
+    name1: string,
+    op: string,
+    name2: string,
+    redExpression: string,
+    greenExpression: string,
+    blueExpression: string
+  ) {
+    const value1 = this.environment[name1];
+    const value2 = this.environment[name2];
+
+    let actual;
+    switch (op) {
+      case "+":
+        actual = colors.add(value1, value2);
+        break;
+      case "-":
+        actual = colors.sub(value1, value2);
+        break;
+      case "*":
+        actual = colors.mul(value1, value2);
+        break;
+      default:
+        throw `unknown op ${op}`;
+    }
+
+    const red = parseNumberExpression(redExpression);
+    const green = parseNumberExpression(greenExpression);
+    const blue = parseNumberExpression(blueExpression);
+
+    assert.approximately(actual.red, red, EPSILON);
+    assert.approximately(actual.green, green, EPSILON);
+    assert.approximately(actual.blue, blue, EPSILON);
+  }
+);
+
+Then(
+  new RegExp(
+    `^([a-z0-9]+) \\* ${NUMBER_EXPRESSION_REGEX} = color\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
+  ),
+  function (
+    name: string,
+    scalarExpression: string,
+    redExpression: string,
+    greenExpression: string,
+    blueExpression: string
+  ) {
+    const value = this.environment[name];
+    const scalar = parseNumberExpression(scalarExpression);
+    const actual = colors.mul(value, scalar);
+
+    const red = parseNumberExpression(redExpression);
+    const green = parseNumberExpression(greenExpression);
+    const blue = parseNumberExpression(blueExpression);
+
+    assert.approximately(actual.red, red, EPSILON);
+    assert.approximately(actual.green, green, EPSILON);
+    assert.approximately(actual.blue, blue, EPSILON);
   }
 );
