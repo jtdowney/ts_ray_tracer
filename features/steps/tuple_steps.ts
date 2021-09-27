@@ -3,77 +3,37 @@ import tuples from "../../src/tuples";
 import { EPSILON } from "../../src/constants";
 import { Given, Then, When } from "@cucumber/cucumber";
 import { assert } from "chai";
-import { NUMBER_EXPRESSION_REGEX, parseNumberExpression } from "./common";
 
 Given(
-  new RegExp(
-    `^([a-z0-9]+) ← tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
-  function (
-    name: string,
-    xExpression: string,
-    yExpression: string,
-    zExpression: string,
-    wExpression: string
-  ) {
-    if (!this.environment) {
-      this.environment = {};
-    }
-
-    const x = parseNumberExpression(xExpression);
-    const y = parseNumberExpression(yExpression);
-    const z = parseNumberExpression(zExpression);
-    const w = parseNumberExpression(wExpression);
+  "{variable} ← tuple\\({expression}, {expression}, {expression}, {expression})",
+  function (name: string, x: number, y: number, z: number, w: number) {
     this.environment[name] = { x, y, z, w };
   }
 );
 
 Given(
-  new RegExp(
-    `^([a-z0-9]+) ← (point|vector)\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
-  function (
-    name: string,
-    type: string,
-    xExpression: string,
-    yExpression: string,
-    zExpression: string
-  ) {
-    if (!this.environment) {
-      this.environment = {};
-    }
-
-    const x = parseNumberExpression(xExpression);
-    const y = parseNumberExpression(yExpression);
-    const z = parseNumberExpression(zExpression);
-    const w = type == "point" ? 1 : 0;
-    this.environment[name] = { x, y, z, w };
+  "{variable} ← point\\({expression}, {expression}, {expression})",
+  function (name: string, x: number, y: number, z: number) {
+    this.environment[name] = { x, y, z, w: 1 };
   }
 );
 
 Given(
-  new RegExp(
-    `^([a-z0-9]+) ← color\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
-  function (
-    name: string,
-    redExpression: string,
-    greenExpression: string,
-    blueExpression: string
-  ) {
-    if (!this.environment) {
-      this.environment = {};
-    }
+  "{variable} ← vector\\({expression}, {expression}, {expression})",
+  function (name: string, x: number, y: number, z: number) {
+    this.environment[name] = { x, y, z, w: 0 };
+  }
+);
 
-    const red = parseNumberExpression(redExpression);
-    const green = parseNumberExpression(greenExpression);
-    const blue = parseNumberExpression(blueExpression);
-    this.environment[name] = { red, green, blue };
+Given(
+  "{variable} ← color\\({expression}, {expression}, {expression})",
+  function (name: string, red: number, green: number, blue: number) {
+    this.environment[name] = { red, green, blue, w: 0 };
   }
 );
 
 When(
-  "{word} ← normalize\\({word})",
+  "{variable} ← normalize\\({variable})",
   function (normalName: string, name: string) {
     const value = tuples.normalize(this.environment[name]);
     this.environment[normalName] = value;
@@ -81,199 +41,212 @@ When(
 );
 
 Then(
-  new RegExp(`([a-z0-9]+)\.([a-z]+) = ${NUMBER_EXPRESSION_REGEX}`),
-  function (name: string, element: string, expected: number) {
-    const actual = this.environment[name][element];
+  "{variable}.{variable} = {expression}",
+  function (name: string, property: string, expected: number) {
+    const actual = this.environment[name][property];
     assert.equal(actual, expected);
   }
 );
 
-Then("{word} is a point", function (name: string) {
+Then("{variable} is a point", function (name: string) {
   const actual = this.environment[name].w;
   assert.equal(actual, 1.0);
 });
 
-Then("{word} is not a point", function (name: string) {
+Then("{variable} is not a point", function (name: string) {
   const actual = this.environment[name].w;
   assert.notEqual(actual, 1.0);
 });
 
-Then("{word} is a vector", function (name: string) {
+Then("{variable} is a vector", function (name: string) {
   const actual = this.environment[name].w;
   assert.equal(actual, 0.0);
 });
 
-Then("{word} is not a vector", function (name: string) {
+Then("{variable} is not a vector", function (name: string) {
   const actual = this.environment[name].w;
   assert.notEqual(actual, 0.0);
 });
 
 Then(
-  new RegExp(
-    `^([a-z0-9]+) = tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
-  function (
-    name: string,
-    xExpression: string,
-    yExpression: string,
-    zExpression: string,
-    wExpression: string
-  ) {
+  "{variable} = tuple\\({expression}, {expression}, {expression}, {expression})",
+  function (name: string, x: number, y: number, z: number, w: number) {
     const actual = this.environment[name];
-
-    const x = parseNumberExpression(xExpression);
-    const y = parseNumberExpression(yExpression);
-    const z = parseNumberExpression(zExpression);
-    const w = parseNumberExpression(wExpression);
     const expected = { x, y, z, w };
     assert.deepEqual(actual, expected);
   }
 );
 
 Then(
-  new RegExp(
-    `^-([a-z0-9]+) = tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
-  function (
-    name: string,
-    xExpression: string,
-    yExpression: string,
-    zExpression: string,
-    wExpression: string
-  ) {
+  "-{variable} = tuple\\({expression}, {expression}, {expression}, {expression})",
+  function (name: string, x: number, y: number, z: number, w: number) {
     const actual = tuples.negate(this.environment[name]);
-
-    const x = parseNumberExpression(xExpression);
-    const y = parseNumberExpression(yExpression);
-    const z = parseNumberExpression(zExpression);
-    const w = parseNumberExpression(wExpression);
-    const expected = { x, y, z, w };
-    assert.deepEqual(actual, expected);
+    assert.approximately(actual.x, x, EPSILON);
+    assert.approximately(actual.y, y, EPSILON);
+    assert.approximately(actual.z, z, EPSILON);
+    assert.approximately(actual.w, w, EPSILON);
   }
 );
 
 Then(
-  new RegExp(
-    `^([a-z0-9]+) = vector\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
-  function (
-    name: string,
-    xExpression: string,
-    yExpression: string,
-    zExpression: string
-  ) {
+  "{variable} = point\\({expression}, {expression}, {expression})",
+  function (name: string, x: number, y: number, z: number) {
     const actual = this.environment[name];
-
-    const x = parseNumberExpression(xExpression);
-    const y = parseNumberExpression(yExpression);
-    const z = parseNumberExpression(zExpression);
-    const w = 0;
-    const expected = { x, y, z, w };
-
-    assert.approximately(actual.x, expected.x, EPSILON);
-    assert.approximately(actual.y, expected.y, EPSILON);
-    assert.approximately(actual.z, expected.z, EPSILON);
-    assert.approximately(actual.w, expected.w, EPSILON);
+    assert.approximately(actual.x, x, EPSILON);
+    assert.approximately(actual.y, y, EPSILON);
+    assert.approximately(actual.z, z, EPSILON);
+    assert.approximately(actual.w, 1, EPSILON);
   }
 );
 
 Then(
-  new RegExp(
-    `^([a-z0-9]+) \\+ ([a-z0-9]+) = tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
-  function (
-    name1: string,
-    name2: string,
-    xExpression: string,
-    yExpression: string,
-    zExpression: string,
-    wExpression: string
-  ) {
-    const value1 = this.environment[name1];
-    const value2 = this.environment[name2];
-    let actual = tuples.add(value1, value2);
-
-    const x = parseNumberExpression(xExpression);
-    const y = parseNumberExpression(yExpression);
-    const z = parseNumberExpression(zExpression);
-    const w = parseNumberExpression(wExpression);
-    const expected = { x, y, z, w };
-    assert.deepEqual(actual, expected);
+  "{variable} = vector\\({expression}, {expression}, {expression})",
+  function (name: string, x: number, y: number, z: number) {
+    const actual = this.environment[name];
+    assert.approximately(actual.x, x, EPSILON);
+    assert.approximately(actual.y, y, EPSILON);
+    assert.approximately(actual.z, z, EPSILON);
+    assert.approximately(actual.w, 0, EPSILON);
   }
 );
 
 Then(
-  new RegExp(
-    `^([a-z0-9]+) ([*/]) ${NUMBER_EXPRESSION_REGEX} = tuple\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
+  "{variable} {operator} {variable} = tuple\\({expression}, {expression}, {expression}, {expression})",
   function (
-    name: string,
-    op: string,
-    scalarExpression: string,
-    xExpression: string,
-    yExpression: string,
-    zExpression: string,
-    wExpression: string
+    lhs: string,
+    operator: string,
+    rhs: string,
+    x: number,
+    y: number,
+    z: number,
+    w: number
   ) {
-    const value = this.environment[name];
-    const scalar = parseNumberExpression(scalarExpression);
+    const value1 = this.environment[lhs];
+    const value2 = this.environment[rhs];
 
     let actual;
-    switch (op) {
+    switch (operator) {
+      case "+":
+        actual = tuples.add(value1, value2);
+        break;
+      default:
+        throw `unsupport op ${operator}`;
+    }
+
+    assert.approximately(actual.x, x, EPSILON);
+    assert.approximately(actual.y, y, EPSILON);
+    assert.approximately(actual.z, z, EPSILON);
+    assert.approximately(actual.w, w, EPSILON);
+  }
+);
+
+Then(
+  "{variable} {operator} {expression} = tuple\\({expression}, {expression}, {expression}, {expression})",
+  function (
+    name: string,
+    operator: string,
+    scalar: number,
+    x: number,
+    y: number,
+    z: number,
+    w: number
+  ) {
+    const value = this.environment[name];
+
+    let actual;
+    switch (operator) {
       case "*":
         actual = tuples.mul(value, scalar);
         break;
       case "/":
         actual = tuples.div(value, scalar);
         break;
+      default:
+        throw `unsupport op ${operator}`;
     }
 
-    const x = parseNumberExpression(xExpression);
-    const y = parseNumberExpression(yExpression);
-    const z = parseNumberExpression(zExpression);
-    const w = parseNumberExpression(wExpression);
-    const expected = { x, y, z, w };
-    assert.deepEqual(actual, expected);
+    assert.approximately(actual.x, x, EPSILON);
+    assert.approximately(actual.y, y, EPSILON);
+    assert.approximately(actual.z, z, EPSILON);
+    assert.approximately(actual.w, w, EPSILON);
   }
 );
 
 Then(
-  new RegExp(
-    `^([a-z0-9]+) - ([a-z0-9]+) = (point|vector)\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
+  "{variable} {operator} {variable} = point\\({expression}, {expression}, {expression})",
   function (
-    name1: string,
-    name2: string,
-    type: string,
-    xExpression: string,
-    yExpression: string,
-    zExpression: string
+    lhs: string,
+    operator: string,
+    rhs: string,
+    x: number,
+    y: number,
+    z: number
   ) {
-    const value1 = this.environment[name1];
-    const value2 = this.environment[name2];
-    const actual = tuples.sub(value1, value2);
+    const value1 = this.environment[lhs];
+    const value2 = this.environment[rhs];
 
-    const x = parseNumberExpression(xExpression);
-    const y = parseNumberExpression(yExpression);
-    const z = parseNumberExpression(zExpression);
-    const w = type == "point" ? 1 : 0;
-    const expected = { x, y, z, w };
-    assert.deepEqual(actual, expected);
+    let actual;
+    switch (operator) {
+      case "+":
+        actual = tuples.add(value1, value2);
+        break;
+      case "-":
+        actual = tuples.sub(value1, value2);
+        break;
+      default:
+        throw `unsupport op ${operator}`;
+    }
+
+    assert.approximately(actual.x, x, EPSILON);
+    assert.approximately(actual.y, y, EPSILON);
+    assert.approximately(actual.z, z, EPSILON);
+    assert.approximately(actual.w, 1, EPSILON);
   }
 );
 
 Then(
-  new RegExp(`^magnitude\\(([a-z0-9]+)\\) = ${NUMBER_EXPRESSION_REGEX}$`),
-  function (name: string, expectedExpression: string) {
+  "{variable} {operator} {variable} = vector\\({expression}, {expression}, {expression})",
+  function (
+    lhs: string,
+    operator: string,
+    rhs: string,
+    x: number,
+    y: number,
+    z: number
+  ) {
+    const value1 = this.environment[lhs];
+    const value2 = this.environment[rhs];
+
+    let actual;
+    switch (operator) {
+      case "+":
+        actual = tuples.add(value1, value2);
+        break;
+      case "-":
+        actual = tuples.sub(value1, value2);
+        break;
+      default:
+        throw `unsupport op ${operator}`;
+    }
+
+    assert.approximately(actual.x, x, EPSILON);
+    assert.approximately(actual.y, y, EPSILON);
+    assert.approximately(actual.z, z, EPSILON);
+    assert.approximately(actual.w, 0, EPSILON);
+  }
+);
+
+Then(
+  "magnitude\\({variable}) = {expression}",
+  function (name: string, expected: number) {
     const value = this.environment[name];
     const actual = tuples.magnitude(value);
-    let expected = parseNumberExpression(expectedExpression);
     assert.equal(actual, expected);
   }
 );
 
 Then(
-  "normalize\\({word}) = vector\\({float}, {float}, {float})",
+  "normalize\\({variable}) = vector\\({expression}, {expression}, {expression})",
   function (name: string, x: number, y: number, z: number) {
     const value = this.environment[name];
     const actual = tuples.normalize(value);
@@ -283,7 +256,7 @@ Then(
 );
 
 Then(
-  "normalize\\({word}) = approximately vector\\({float}, {float}, {float})",
+  "normalize\\({variable}) = approximately vector\\({expression}, {expression}, {expression})",
   function (name: string, x: number, y: number, z: number) {
     const value = this.environment[name];
     const actual = tuples.normalize(value);
@@ -296,7 +269,7 @@ Then(
 );
 
 Then(
-  "cross\\({word}, {word}) = vector\\({float}, {float}, {float})",
+  "cross\\({variable}, {variable}) = vector\\({expression}, {expression}, {expression})",
   function (name1: string, name2: string, x: number, y: number, z: number) {
     const value1 = this.environment[name1];
     const value2 = this.environment[name2];
@@ -308,7 +281,7 @@ Then(
 );
 
 Then(
-  "dot\\({word}, {word}) = {float}",
+  "dot\\({variable}, {variable}) = {expression}",
   function (name1: string, name2: string, expected: number) {
     const value1 = this.environment[name1];
     const value2 = this.environment[name2];
@@ -318,22 +291,20 @@ Then(
 );
 
 Then(
-  new RegExp(
-    `^([a-z0-9]+) ([-+*]) ([a-z]+[0-9]+) = color\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
+  "{variable} {operator} {variable} = color\\({expression}, {expression}, {expression})",
   function (
     name1: string,
-    op: string,
+    operator: string,
     name2: string,
-    redExpression: string,
-    greenExpression: string,
-    blueExpression: string
+    red: number,
+    green: number,
+    blue: number
   ) {
     const value1 = this.environment[name1];
     const value2 = this.environment[name2];
 
     let actual;
-    switch (op) {
+    switch (operator) {
       case "+":
         actual = colors.add(value1, value2);
         break;
@@ -344,12 +315,8 @@ Then(
         actual = colors.mul(value1, value2);
         break;
       default:
-        throw `unknown op ${op}`;
+        throw `unknown op ${operator}`;
     }
-
-    const red = parseNumberExpression(redExpression);
-    const green = parseNumberExpression(greenExpression);
-    const blue = parseNumberExpression(blueExpression);
 
     assert.approximately(actual.red, red, EPSILON);
     assert.approximately(actual.green, green, EPSILON);
@@ -358,23 +325,25 @@ Then(
 );
 
 Then(
-  new RegExp(
-    `^([a-z0-9]+) \\* ${NUMBER_EXPRESSION_REGEX} = color\\(${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}, ${NUMBER_EXPRESSION_REGEX}\\)$`
-  ),
+  "{variable} {operator} {expression} = color\\({expression}, {expression}, {expression})",
   function (
     name: string,
-    scalarExpression: string,
-    redExpression: string,
-    greenExpression: string,
-    blueExpression: string
+    operator: string,
+    scalar: number,
+    red: number,
+    green: number,
+    blue: number
   ) {
     const value = this.environment[name];
-    const scalar = parseNumberExpression(scalarExpression);
-    const actual = colors.mul(value, scalar);
 
-    const red = parseNumberExpression(redExpression);
-    const green = parseNumberExpression(greenExpression);
-    const blue = parseNumberExpression(blueExpression);
+    let actual;
+    switch (operator) {
+      case "*":
+        actual = colors.mul(value, scalar);
+        break;
+      default:
+        throw `unknown op ${operator}`;
+    }
 
     assert.approximately(actual.red, red, EPSILON);
     assert.approximately(actual.green, green, EPSILON);

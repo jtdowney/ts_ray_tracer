@@ -1,7 +1,6 @@
-export const NUMBER_EXPRESSION_REGEX =
-  "(-?√?[0-9]+(?:\\.[0-9]+)?(?:\\/-?√?[0-9]+(?:\\.[0-9]+)?)?)";
+import { Before, defineParameterType } from "@cucumber/cucumber";
 
-export function parseNumberExpression(value: string): number {
+function transformExpression(value: string): number {
   return value
     .split("/")
     .map((part) => {
@@ -33,3 +32,32 @@ export function parseNumberExpression(value: string): number {
       return value / acc;
     }, 1);
 }
+
+defineParameterType({
+  name: "expression",
+  regexp: "(-?√?[0-9]+(?:\\.[0-9]+)?(?:\\/-?√?[0-9]+(?:\\.[0-9]+)?)?)",
+  transformer: transformExpression,
+  useForSnippets: false,
+});
+
+defineParameterType({
+  name: "variable",
+  regexp: "[a-z][a-z0-9]*",
+  transformer: (s) => {
+    return s;
+  },
+  useForSnippets: false,
+});
+
+defineParameterType({
+  name: "operator",
+  regexp: "\\+|-|\\*|\\/",
+  transformer: (s) => {
+    return s;
+  },
+  useForSnippets: false,
+});
+
+Before(function () {
+  this.environment = {};
+});
