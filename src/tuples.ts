@@ -96,6 +96,21 @@ function dot(lhs: Tuple, rhs: Tuple) {
   return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
 }
 
+function element(value: Tuple, index: number) {
+  switch (index) {
+    case 0:
+      return value.x;
+    case 1:
+      return value.y;
+    case 2:
+      return value.z;
+    case 3:
+      return value.w;
+    default:
+      throw "invalid index";
+  }
+}
+
 export default {
   add,
   sub,
@@ -106,4 +121,5 @@ export default {
   normalize,
   cross,
   dot,
+  element,
 };

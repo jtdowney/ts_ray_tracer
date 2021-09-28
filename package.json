@@ -7,6 +7,7 @@
   "scripts": {
     "chapter1": "ts-node examples/chapter1.ts",
     "chapter2": "ts-node examples/chapter2.ts",
+    "chapter3": "ts-node examples/chapter3.ts",
     "test": "tsc && cucumber-js --publish-quiet features/"
   },
   "devDependencies": {
